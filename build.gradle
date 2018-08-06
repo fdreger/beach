@@ -1,0 +1,73 @@
+buildscript {
+	repositories {
+		jcenter()
+	}
+}
+
+plugins {
+	id "com.jfrog.bintray" version "1.7"
+}
+
+group 'net.snowyhollows.beach'
+version '1.0'
+
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+	jcenter()
+}
+
+jar {
+	from sourceSets.main.allJava
+}
+
+task sourceJar(type: Jar) {
+	from sourceSets.main.allJava
+	classifier 'sources'
+}
+
+task javadocJar(type: Jar) {
+	from javadoc
+	classifier 'javadoc'
+}
+
+publishing {
+	publications {
+		MyPublication(MavenPublication) {
+			from components.java
+			artifact sourceJar
+			artifact javadocJar
+			groupId project.getGroup()
+			artifactId project.getName()
+			version project.getVersion()
+		}
+	}
+}
+
+bintray {
+	user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
+	key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
+	publications = ['MyPublication']
+	pkg {
+		repo = 'default'
+		name = project.getName()
+		userOrg = 'snowyhollows'
+		licenses = ['Apache-2.0']
+		vcsUrl = "https://github.com/fdreger/beach.git"
+		version {
+			name = project.getVersion()
+		}
+	}
+}
+
+task wrapper(type: Wrapper) {
+	gradleVersion = '4.6'
+}
+
+dependencies {
+	testCompile group: 'junit', name: 'junit', version: '4.12'
+}
